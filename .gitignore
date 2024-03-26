@@ -1,0 +1,5 @@
+# build and log artifacts
+log/*
+build/*
+install/*
+.ccache/*
