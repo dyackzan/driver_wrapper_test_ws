@@ -1,23 +1,44 @@
 cmake_minimum_required(VERSION 3.8)
 project(motor_driver_wrapper)
 
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
+if(CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
+  add_compile_options(
+    -Wall
+    -Wextra
+    -Wpedantic
+    -Werror=unused-but-set-variable
+    -Werror=return-type
+    -Werror=shadow
+    -Werror=format)
 endif()
 
-# find dependencies
+set(THIS_PACKAGE_INCLUDE_DEPENDS rclcpp)
+
 find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
+find_package(backward_ros REQUIRED)
+foreach(dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
+  find_package(${dependency} REQUIRED)
+endforeach()
+
+# Motor driver library.
+add_library(motor_driver SHARED src/motor_driver.cpp)
+target_compile_features(motor_driver PUBLIC cxx_std_17)
+target_include_directories(motor_driver PUBLIC
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include/motor_driver_wrapper>)
+# target_link_libraries(motor_driver PUBLIC Eigen3::Eigen)
+ament_target_dependencies(motor_driver PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 add_executable(motor_driver_node src/motor_driver_node.cpp)
-target_include_directories(motor_driver_node PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>)
-target_compile_features(motor_driver_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_compile_features(motor_driver_node PUBLIC cxx_std_17)
 ament_target_dependencies(
   motor_driver_node
   "rclcpp"
 )
+target_include_directories(motor_driver_node PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_link_libraries(motor_driver_node motor_driver)
 
 install(TARGETS motor_driver_node
   DESTINATION lib/${PROJECT_NAME})
