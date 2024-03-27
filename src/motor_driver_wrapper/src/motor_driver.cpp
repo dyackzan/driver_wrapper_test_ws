@@ -1,4 +1,5 @@
 #include "motor_driver_wrapper/motor_driver.hpp"
+#include <cstdio>
 
 MotorDriver::MotorDriver(int max_speed)
 {
@@ -6,6 +7,7 @@ MotorDriver::MotorDriver(int max_speed)
   current_speed_ = 0;
   voltage_ = 12;
   temperature_ = 47;
+  printf("Motor driver initialized with max_speed: %d\n", max_speed);
 }
 
 void MotorDriver::setSpeed(int speed)
@@ -23,6 +25,7 @@ void MotorDriver::setSpeed(int speed)
 void MotorDriver::stop()
 {
   current_speed_ = 0;
+  printf("Stopping motor driver\n");
 }
 
 int MotorDriver::getSpeed()
